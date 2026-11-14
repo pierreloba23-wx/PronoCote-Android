@@ -1,5 +1,5 @@
 
-name: Build PronoCote Android APK
+name: Build PronoCote Pro Android APK
 
 on:
   workflow_dispatch:
@@ -8,81 +8,46 @@ on:
       - main
 
 jobs:
-  build-android:
+  build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Recuperer le projet
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Installer Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Python
+      - name: Installer Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Installer les dependances Android
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt-get install -y \
+            git zip unzip \
+            autoconf automake libtool \
+            pkg-config zlib1g-dev \
+            libncurses5-dev libncursesw5-dev \
+            libtinfo5 cmake libffi-dev \
+            libssl-dev build-essential
+
+      - name: Installer Buildozer
+        run: |
           python -m pip install --upgrade pip
           pip install buildozer "Cython<3" virtualenv
 
-      - name: Build APK
-        run: |
-          yes | buildozer -v android debug
+      - name: Compiler l'application Android
+        run: buildozer -v android debug
 
-      - name: Upload APK
+      - name: Publier le fichier APK
         uses: actions/upload-artifact@v4
         with:
-          name: PronoCote-Android-APK
+          name: PronoCote-Pro-APK
           path: bin/*.apk
-
-name: Build PronoCote Android APK
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-
-jobs:
-  build-android:
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libtinfo5 cmake libffi-dev libssl-dev
-          python -m pip install --upgrade pip
-          pip install buildozer "Cython<3" virtualenv
-
-      - name: Build APK
-        run: |
-          yes | buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PronoCote-Android-APK
-          path: bin/*.apk
+          if-no-files-found: error
